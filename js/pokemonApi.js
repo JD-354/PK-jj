@@ -1,39 +1,52 @@
-const apiUrl = "https://rickandmortyapi.com/api/character/?page=1";
-const characterContainer = document.getElementById("characterContainer");
+const API_ALBUM = "https://rickandmortyapi.com/api/character";
 
-async function fetchCharacterData() {
-  try {
-    const response = await fetch(apiUrl);
-    const data = await response.json();
-
-    data.results.forEach((character) => {
-      const fallbackImage = "https://via.placeholder.com/200?text=No+Image";
-      const imageUrl = character.image || fallbackImage;
-
-      const characterCard = document.createElement("div");
-      characterCard.classList.add("col");
-      characterCard.innerHTML = `
-        <div class="card character-card h-100 text-center">
-          <img
-            src="${imageUrl}" 
-            class="card-img-top character-image" 
-            alt="${character.name}"
-          >
-          <div class="card-body">
-            <h5 class="card-title">${character.name}</h5>
-            <p class="card-text">
-              Especie: ${character.species}<br>
-              Género: ${character.gender}<br>
-              Estado: ${character.status}
-            </p>
-          </div>
-        </div>
-      `;
-      characterContainer.appendChild(characterCard);
-    });
-  } catch (error) {
-    console.error("Error fetching Character data:", error);
-  }
+function getAlbum(api) {
+    fetch(api)
+        .then((response) => response.json())
+        .then((json) => {
+            fillData(json.results);
+            pagination(json.info);
+        })
+        .catch((error) => {
+            console.error("Error consuming the API:", error);
+            // Display a user-friendly message
+            document.getElementById("dataAlbum").innerHTML = "<p>Sorry, there was an issue fetching the data. Please try again later.</p>";
+        });
 }
 
-fetchCharacterData();
+function fillData(results) {
+    let cards = "";
+    results.forEach(result => {
+        cards += `
+            <div class="col">
+                <div class="card h-100" style="width: 12rem;">
+                    <img src="${result.image}" class="card-img-top" alt="img-personaje">
+                    <h2 class="card-title">${result.name}</h2>
+                    <div class="card-body">
+                        <h5 class="card-title">Status: ${result.status}</h5>
+                        <h5 class="card-title">Species: ${result.species}</h5>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    document.getElementById("dataAlbum").innerHTML = cards;
+}
+
+function pagination(info) {
+    let prevDisabled = !info.prev ? "disabled" : "";
+    let nextDisabled = !info.next ? "disabled" : "";
+
+    let html = `
+        <li class="page-item ${prevDisabled}">
+            <a class="page-link" onclick="getAlbum('${info.prev}')">Prev</a>
+        </li>
+        <li class="page-item ${nextDisabled}">
+            <a class="page-link" onclick="getAlbum('${info.next}')">Next</a>
+        </li>
+    `;
+
+    document.getElementById("pagination").innerHTML = html;
+}
+
+getAlbum(API_ALBUM);
